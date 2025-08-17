@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'screens/screen_capture_screen.dart';
 
 void main() {
-  runApp(const UmaMusumeGuideApp());
+  runApp(MyApp());
 }
 
-class UmaMusumeGuideApp extends StatelessWidget {
-  const UmaMusumeGuideApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Uma Musume Event Guide',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-      home: const HomeScreen(),
+      title: 'Screen Capture App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: ScreenCaptureScreen(),
     );
   }
 }
