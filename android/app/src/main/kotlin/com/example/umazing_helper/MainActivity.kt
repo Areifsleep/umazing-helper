@@ -2,38 +2,45 @@
 package com.example.umazing_helper
 
 import android.app.Activity
+import android.content.Context  // ← Add this import
 import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugins.GeneratedPluginRegistrant
 import kotlinx.coroutines.launch
+
+
 
 class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "uma_screen_capture"
         private const val REQUEST_CODE_SCREEN_CAPTURE = 1000
         private const val TAG = "MainActivity"
+
+        // Add static reference for OverlayService to access
+        var instance: MainActivity? = null
     }
 
     private lateinit var permissionManager: PermissionManager
     private lateinit var screenCaptureService: ScreenCaptureService
     private lateinit var overlayServiceController: OverlayServiceController
     private var pendingResult: MethodChannel.Result? = null
+    private var methodChannel: MethodChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this // Set static reference to this instance
         initializeServices()
         AppLogger.d(TAG, "MainActivity created")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        GeneratedPluginRegistrant.registerWith(flutterEngine)
+        // GeneratedPluginRegistrant.registerWith(flutterEngine)
         setupMethodChannel(flutterEngine)
-        AppLogger.d(TAG, "Flutter engine configured")
+        // AppLogger.d(TAG, "Flutter engine configured")
     }
 
     private fun initializeServices() {
@@ -43,13 +50,27 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun setupMethodChannel(flutterEngine: FlutterEngine) {
-        val methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
-        methodChannel.setMethodCallHandler(AppMethodCallHandler(this))
+        methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        methodChannel!!.setMethodCallHandler(AppMethodCallHandler(this))
         AppLogger.d(TAG, "Method channel setup completed")
     }
 
     // Permission management
     private var isServiceStarted = false
+
+    fun sendImageToFlutter(imageData: ByteArray) {
+        try {
+            methodChannel?.invokeMethod("onImageCaptured", mapOf(
+                "image_data" to imageData,
+                "image_size" to imageData.size,
+                "temp_processing" to true,
+                "timestamp" to System.currentTimeMillis()
+            ))
+            AppLogger.d(TAG, "Image sent to Flutter via MethodChannel")
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Failed to send image to Flutter", e)
+        }
+    }
     
     fun requestScreenCapturePermission(result: MethodChannel.Result) {
         if (!permissionManager.isScreenCaptureSupported()) {
@@ -83,39 +104,43 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        
-        if (requestCode == REQUEST_CODE_SCREEN_CAPTURE) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                try {
-                    AppLogger.d(TAG, "Screen capture permission granted, creating MediaProjection...")
-                    
-                    // Step 3: Create MediaProjection and store it (service is already running)
-                    val mediaProjection = permissionManager.createMediaProjection(resultCode, data)
-                    MediaProjectionService.setMediaProjection(mediaProjection)
-                    
-                    pendingResult?.success(true)
-                    AppLogger.d(TAG, "MediaProjection created and stored successfully")
-                    
-                } catch (e: Exception) {
-                    AppLogger.e(TAG, "Failed to create MediaProjection", e)
-                    pendingResult?.success(false)
-                }
-            } else {
-                pendingResult?.success(false)
-                AppLogger.w(TAG, "Screen capture permission denied")
+    // MainActivity.kt (Updated to store permission data)
+    // MainActivity.kt (Fixed onActivityResult method)
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    
+    if (requestCode == REQUEST_CODE_SCREEN_CAPTURE) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            try {
+                AppLogger.d(TAG, "Screen capture permission granted, creating MediaProjection...")
                 
-                // Stop service if permission denied
-                if (isServiceStarted) {
-                    MediaProjectionService.stop(this)
-                    isServiceStarted = false
-                }
+                // Store permission data for recreation
+                val mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+                MediaProjectionManager.getInstance().setPermissionData(mediaProjectionManager, resultCode, data)
+                
+                // Create MediaProjection and set it (service is already started)
+                val mediaProjection = permissionManager.createMediaProjection(resultCode, data)
+                MediaProjectionService.setMediaProjection(mediaProjection)  // ✅ Use setMediaProjection instead
+                
+                pendingResult?.success(true)
+                AppLogger.d(TAG, "MediaProjection created and set successfully")
+                
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "Failed to create MediaProjection", e)
+                pendingResult?.success(false)
             }
-            pendingResult = null
+        } else {
+            pendingResult?.success(false)
+            AppLogger.w(TAG, "Screen capture permission denied")
+            
+            if (isServiceStarted) {
+                MediaProjectionService.stop(this)
+                isServiceStarted = false
+            }
         }
+        pendingResult = null
     }
-
+}
     private fun handleScreenCapturePermissionResult(resultCode: Int, data: Intent?) {
         val success = resultCode == Activity.RESULT_OK && data != null
         
@@ -195,9 +220,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (isServiceStarted) {
-            MediaProjectionService.stop(this)
-        }
+        instance = null // Clear static reference
+        MediaProjectionService.stop(this)
         AppLogger.d(TAG, "MainActivity destroyed")
     }
 }

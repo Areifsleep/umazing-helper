@@ -34,7 +34,16 @@ class OverlayManager(private val context: Context) {
     }
     
     private fun setupOverlayView() {
+        var lastClickTime = 0L
+    
         overlayView?.findViewById<Button>(R.id.scanButton)?.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastClickTime < 2000) { // 2 second cooldown
+                android.widget.Toast.makeText(context, "⏳ Please wait 2 seconds between captures", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            lastClickTime = currentTime
+            
             onScanClickListener?.invoke()
         }
         

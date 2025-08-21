@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
     
     <!-- Screen capture permissions (for future OCR features) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -52,7 +53,8 @@
             android:name=".MediaProjectionService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
+            android:foregroundServiceType="mediaProjection" 
+            android:stopWithTask="false" />
         <service
             android:name=".OverlayService"
             android:enabled="true"
