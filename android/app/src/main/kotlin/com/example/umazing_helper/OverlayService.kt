@@ -87,6 +87,60 @@ class OverlayService : Service() {
             stopSelf()
         }
     }
+
+    // OverlayService.kt (Add missing isImageValid method)
+    private fun isImageValid(imageData: ByteArray): Boolean {
+        AppLogger.d("OverlayService", "🔍 Validating captured image...")
+        AppLogger.d("OverlayService", "   Image size: ${imageData.size} bytes")
+        
+        if (imageData.size < 1000) {
+            AppLogger.e("OverlayService", "❌ Image too small: ${imageData.size} bytes")
+            return false
+        }
+        
+        // Check PNG header
+        if (imageData.size >= 8) {
+            val pngHeader = byteArrayOf(137.toByte(), 80, 78, 71, 13, 10, 26, 10)
+            var hasValidHeader = true
+            for (i in 0..7) {
+                if (imageData[i] != pngHeader[i]) {
+                    hasValidHeader = false
+                    break
+                }
+            }
+            
+            if (!hasValidHeader) {
+                AppLogger.e("OverlayService", "❌ Invalid PNG header!")
+                return false
+            } else {
+                AppLogger.d("OverlayService", "✅ Valid PNG header")
+            }
+        }
+        
+        // Check if image is mostly zeros (blank/black)
+        var nonZeroBytes = 0
+        val sampleSize = minOf(1000, imageData.size)
+        
+        for (i in 0 until sampleSize) {
+            if (imageData[i] != 0.toByte()) {
+                nonZeroBytes++
+            }
+        }
+        
+        val nonZeroPercentage = (nonZeroBytes.toFloat() / sampleSize * 100)
+        AppLogger.d("OverlayService", "   Non-zero bytes: $nonZeroBytes/$sampleSize (${nonZeroPercentage.toInt()}%)")
+        
+        if (nonZeroPercentage < 5) {
+            AppLogger.e("OverlayService", "❌ Image appears blank/black (${nonZeroPercentage.toInt()}% non-zero)")
+            return false
+        } else if (nonZeroPercentage < 20) {
+            AppLogger.w("OverlayService", "⚠️ Image has low content (${nonZeroPercentage.toInt()}% non-zero)")
+        } else {
+            AppLogger.d("OverlayService", "✅ Image has normal content (${nonZeroPercentage.toInt()}% non-zero)")
+        }
+        
+        return true
+    }
     
     private fun performScreenCapture() {
         if (isCapturing) {
@@ -158,23 +212,24 @@ class OverlayService : Service() {
                     return@launch
                 }
                 
-                when (val result = screenCaptureService.captureScreen()) {
-                    is CaptureResult.Success -> {
-                        val sizeKB = result.imageData.size / 1024
-                        AppLogger.d("OverlayService", "📱 Screen captured: ${sizeKB}KB (processing in memory)")
-                        
-                        // Send directly to Flutter for OCR and recognition
+                when (val result = screenCaptureService.captureEventTitleRegion()) {
+                is CaptureResult.Success -> {
+                    val sizeKB = result.imageData.size / 1024
+                    AppLogger.d("OverlayService", "📱 Event title captured: ${sizeKB}KB")
+                    
+                    if (isImageValid(result.imageData)) {
                         sendImageToFlutter(result.imageData)
-                        
-                        showToast("🔍 Analyzing screenshot...")
-                        
-                        // Image data will be garbage collected after processing
-                    }
-                    is CaptureResult.Error -> {
-                        AppLogger.e("OverlayService", "Capture failed: ${result.message}")
-                        showToast("❌ Capture failed: ${result.message}")
+                        showToast("🔍 Analyzing event title...")
+                    } else {
+                        AppLogger.e("OverlayService", "❌ Event title region appears blank")
+                        showToast("❌ No event title found")
                     }
                 }
+                is CaptureResult.Error -> {
+                    AppLogger.e("OverlayService", "Event title capture failed: ${result.message}")
+                    showToast("❌ Capture failed: ${result.message}")
+                }
+            }
             } catch (e: Exception) {
                 AppLogger.e("OverlayService", "Unexpected error during capture", e)
                 showToast("❌ Capture error: ${e.message}")

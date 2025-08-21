@@ -10,17 +10,17 @@
         android:id="@+id/scanButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Scan Screen"
+        android:text="Scan"
         android:background="#FF4444"
         android:textColor="#FFFFFF" />
 
-    <Button
+    <!-- <Button
         android:id="@+id/closeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Close"
         android:background="#666666"
         android:textColor="#FFFFFF"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp" /> -->
 
 </LinearLayout>
