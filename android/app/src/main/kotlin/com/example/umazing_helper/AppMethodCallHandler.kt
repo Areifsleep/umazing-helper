@@ -17,6 +17,7 @@ class AppMethodCallHandler(private val mainActivity: MainActivity) : MethodChann
                 "captureScreen" -> handleCaptureScreen(result)
                 "startOverlayService" -> handleStartOverlayService(result)
                 "stopOverlayService" -> handleStopOverlayService(result)
+                "showEventResult" -> handleShowEventResult(call, result)
                 else -> {
                     AppLogger.w("MethodCallHandler", "Unknown method: ${call.method}")
                     result.notImplemented()
@@ -57,5 +58,22 @@ class AppMethodCallHandler(private val mainActivity: MainActivity) : MethodChann
 
     private fun handleStopOverlayService(result: MethodChannel.Result) {
         mainActivity.stopOverlayService(result)
+    }
+
+    private fun handleShowEventResult(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            val eventName = call.argument<String>("eventName") ?: ""
+            val characterName = call.argument<String>("characterName")
+            val eventType = call.argument<String>("eventType") ?: "unknown"
+            val confidence = call.argument<Double>("confidence") ?: 0.0
+            val options = call.argument<Map<String, String>>("options") ?: emptyMap()
+            
+            mainActivity.showEventResult(eventName, characterName, eventType, confidence, options)
+            result.success(true)
+            AppLogger.d("MethodCallHandler", "Event result overlay shown")
+        } catch (e: Exception) {
+            AppLogger.e("MethodCallHandler", "Error showing event result", e)
+            result.error("SHOW_RESULT_ERROR", e.message, null)
+        }
     }
 }

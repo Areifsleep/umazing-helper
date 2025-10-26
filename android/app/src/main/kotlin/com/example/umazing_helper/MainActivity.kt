@@ -26,6 +26,7 @@ class MainActivity : FlutterActivity() {
     private lateinit var permissionManager: PermissionManager
     private lateinit var screenCaptureService: ScreenCaptureService
     private lateinit var overlayServiceController: OverlayServiceController
+    private lateinit var eventResultOverlay: EventResultOverlay
     private var pendingResult: MethodChannel.Result? = null
     private var methodChannel: MethodChannel? = null
 
@@ -47,6 +48,7 @@ class MainActivity : FlutterActivity() {
         permissionManager = PermissionManager(this)
         screenCaptureService = ScreenCaptureService(this) 
         overlayServiceController = OverlayServiceController(this)
+        eventResultOverlay = EventResultOverlay(this)
     }
 
     private fun setupMethodChannel(flutterEngine: FlutterEngine) {
@@ -58,15 +60,17 @@ class MainActivity : FlutterActivity() {
     // Permission management
     private var isServiceStarted = false
 
-    fun sendImageToFlutter(imageData: ByteArray) {
+    fun sendImageToFlutter(imageData: ByteArray, width: Int, height: Int) {
         try {
             methodChannel?.invokeMethod("onImageCaptured", mapOf(
                 "image_data" to imageData,
-                "image_size" to imageData.size,
+                "width" to width,
+                "height" to height,
+                "format" to "RGBA_8888",
                 "temp_processing" to true,
                 "timestamp" to System.currentTimeMillis()
             ))
-            AppLogger.d(TAG, "Image sent to Flutter via MethodChannel")
+            AppLogger.d(TAG, "Raw RGBA sent to Flutter (${width}x${height}, ${imageData.size} bytes)")
         } catch (e: Exception) {
             AppLogger.e(TAG, "Failed to send image to Flutter", e)
         }
@@ -166,10 +170,16 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
     fun captureScreen(result: MethodChannel.Result) {
         lifecycleScope.launch {
             try {
-                when (val captureResult = screenCaptureService.captureScreen()) {
+                when (val captureResult = screenCaptureService.captureEventTitleRegion()) {
                     is CaptureResult.Success -> {
-                        result.success(captureResult.imageData)
-                        AppLogger.d(TAG, "Screen captured successfully: ${captureResult.imageData.size} bytes")
+                        // Return raw RGBA bytes with metadata
+                        result.success(mapOf(
+                            "image_data" to captureResult.imageData,
+                            "width" to captureResult.width,
+                            "height" to captureResult.height,
+                            "format" to "RGBA_8888"
+                        ))
+                        AppLogger.d(TAG, "Screen captured successfully: ${captureResult.imageData.size} bytes (${captureResult.width}x${captureResult.height})")
                     }
                     is CaptureResult.Error -> {
                         result.error("CAPTURE_ERROR", captureResult.message, null)
@@ -218,9 +228,32 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
         return permissionManager.hasOverlayPermission()
     }
 
+    fun showEventResult(
+        eventName: String,
+        characterName: String?,
+        eventType: String,
+        confidence: Double,
+        options: Map<String, String>
+    ) {
+        try {
+            val result = EventResultOverlay.EventResult(
+                eventName = eventName,
+                characterName = characterName,
+                eventType = eventType,
+                confidence = confidence,
+                options = options
+            )
+            eventResultOverlay.showResult(result)
+            AppLogger.d(TAG, "📱 Event result overlay shown: $eventName")
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Failed to show event result overlay", e)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         instance = null // Clear static reference
+        eventResultOverlay.removeOverlay() // Clean up overlay
         MediaProjectionService.stop(this)
         AppLogger.d(TAG, "MainActivity destroyed")
     }

@@ -1,0 +1,458 @@
+﻿[
+  {
+    "EventName": "Exhilarating! What a Scoop!",
+    "EventOptions": {
+      "Top Option": "Stamina +10\r\nEtsuko Otonashi bond +5"
+    }
+  },
+  {
+    "EventName": "Exhilarating! What a Scoop!",
+    "EventOptions": {
+      "Bottom Option": "Guts +10\r\nEtsuko Otonashi bond +5"
+    }
+  },
+  {
+    "EventName": "A Trainer's Knowledge",
+    "EventOptions": {
+      "Top Option": "Power +10\r\nEtsuko Otonashi bond +5"
+    }
+  },
+  {
+    "EventName": "A Trainer's Knowledge",
+    "EventOptions": {
+      "Bottom Option": "Speed +10\r\nEtsuko Otonashi bond +5"
+    }
+  },
+  {
+    "EventName": "Best Foot Forward!",
+    "EventOptions": {
+      "Top Option": "Energy -10\r\nPower +20\r\nGuts +20\r\nBeeline Burst hint +1"
+    }
+  },
+  {
+    "EventName": "Best Foot Forward!",
+    "EventOptions": {
+      "Bottom Option": "Energy +30\r\nStamina +20\r\nBreath of Fresh Air hint +1"
+    }
+  },
+  {
+    "EventName": "A Three-Legged Race",
+    "EventOptions": {
+      "": "※ Classic Class, Early November\r\n※ At least 50000 fans\r\n\r\n\r\nWisdom +20\r\nSkill points +20\r\nIron Will hint +1\r\n\r\n\r\n※ If Aoi Kiryuin is scenario-linked:\r\nWisdom +20\r\nSkill points +20\r\nIron Will hint +3"
+    }
+  },
+  {
+    "EventName": "Happy Shoe Shopping",
+    "EventOptions": {
+      "": "Power +10"
+    }
+  },
+  {
+    "EventName": "Kiryuin's Day Off",
+    "EventOptions": {
+      "": "Speed +10"
+    }
+  },
+  {
+    "EventName": "A Team at Last",
+    "EventOptions": {
+      "": "※ You can only choose a name if the related character is scenario-linked.\r\n\r\n\r\n• HOP CHEERS (Taiki Shuttle)\r\n• ハレノヒ・ランナーズ [Sunny Day Runners] (Matikanefukukitaru)\r\n• にんじんぷりん [Carrot Pudding] (Haru Urara)\r\n• ブルームス [Blooms] (Rice Shower)\r\n• キャロッツ [Carrots]"
+    }
+  },
+  {
+    "EventName": "A Present from Director Akikawa!",
+    "EventOptions": {
+      "": "※ After successfully finishing the training. Skill hint reward depends on the team name.\r\nAll stats +10\r\nSkill points +50\r\n\r\n\r\nHOP CHEERS (Taiki Shuttle):\r\nMile Maven hint +1\r\n\r\n\r\nハレノヒ・ランナーズ (Matikanefukukitaru):\r\nClairvoyance hint +1\r\n\r\n\r\nにんじんぷりん (Haru Urara):\r\nIndomitable hint +1\r\n\r\n\r\nブルームス (Rice Shower):\r\nCooldown hint +1\r\n\r\n\r\nキャロッツ:\r\nNo Stopping Me! hint +1"
+    }
+  },
+  {
+    "EventName": "Team Power Increased: The Greatest Gift",
+    "EventOptions": {
+      "": "※ When your overall team rank reaches S\r\nAll stats +5\r\nIt's On! hint +1\r\n\r\n\r\n※ When training a scenario link character:\r\nAll stats +6\r\nIt's On! hint +3"
+    }
+  },
+  {
+    "EventName": "All Together! Say Cheese!",
+    "EventOptions": {
+      "": "Speed +10\r\n\r\n\r\n※ If Taiki Shuttle is scenario-linked:\r\nSpeed +20\r\nSkill points +10"
+    }
+  },
+  {
+    "EventName": "A Happy Ending for the Team",
+    "EventOptions": {
+      "": "Stamina +10\r\n\r\n\r\n※ If Rice Shower is scenario-linked:\r\nStamina +20\r\nSkill points +10"
+    }
+  },
+  {
+    "EventName": "A Cheer Song for the Team!",
+    "EventOptions": {
+      "": "Guts +10\r\n\r\n\r\n※ If Haru Urara is scenario-linked:\r\nGuts +20\r\nSkill points +10"
+    }
+  },
+  {
+    "EventName": "Team Trouble?",
+    "EventOptions": {
+      "": "Wisdom +10\r\n\r\n\r\n※ If Matikanefukukitaru is scenario-linked:\r\nWisdom +20\r\nSkill points +10"
+    }
+  },
+  {
+    "EventName": "A Secret Side of Kashimoto",
+    "EventOptions": {
+      "": "Wisdom +10\r\n\r\n\r\n※ If Riko Kashimoto is scenario-linked:\r\nWisdom +20\r\nSkill points +10"
+    }
+  },
+  {
+    "EventName": "A Surprising Side of Kashimoto",
+    "EventOptions": {
+      "": "Energy +10\r\n\r\n\r\n※ If Riko Kashimoto is scenario-linked:\r\nEnergy +15\r\nMood +1"
+    }
+  },
+  {
+    "EventName": "今を駆ける者たちの祖",
+    "EventOptions": {
+      "Top Option": "※ Darley Arabian\r\n\r\n\r\nAll stats +10\r\nSkill points +40\r\n\r\n\r\n※ Wisdom Level 5\r\nWisdom of the Sun hint +1\r\nBlessing of the Sun hint +1\r\n\r\n\r\n※ Wisdom Level 4\r\nWisdom of the Sun hint +1\r\n\r\n\r\n※ Wisdom Level 3 or less\r\nBlessing of the Sun hint +1\r\n\r\n\r\n※ Combined Wisdom Level of all Goddesses 12 or more\r\nWisdom of the Sun hint +3"
+    }
+  },
+  {
+    "EventName": "今を駆ける者たちの祖",
+    "EventOptions": {
+      "Middle Option": "※ Godolphin Barb\r\n\r\n\r\nAll stats +10\r\nSkill points +40\r\n\r\n\r\n※ Wisdom Level 5\r\nWisdom of the Ocean hint +1\r\nBlessing of the Ocean hint +1\r\n\r\n\r\n※ Wisdom Level 4\r\nWisdom of the Ocean hint +1\r\n\r\n\r\n※ Wisdom Level 3 or less\r\nBlessing of the Ocean hint +1\r\n\r\n\r\n※ Combined Wisdom Level of all Goddesses 12 or more\r\nWisdom of the Ocean hint +3"
+    }
+  },
+  {
+    "EventName": "今を駆ける者たちの祖",
+    "EventOptions": {
+      "Bottom Option": "※ Byerley Turk\r\n\r\n\r\nAll stats +10\r\nSkill points +40\r\n\r\n\r\n※ Wisdom Level 5\r\nWisdom of the Land hint +1\r\nBlessing of the Land hint +1\r\n\r\n\r\n※ Wisdom Level 4\r\nWisdom of the Land hint +1\r\n\r\n\r\n※ Wisdom Level 3 or less\r\nBlessing of the Land hint +1\r\n\r\n\r\n※ Combined Wisdom Level of all Goddesses 12 or more\r\nWisdom of the Land hint +3"
+    }
+  },
+  {
+    "EventName": "グロウアップレースの後に・勝利",
+    "EventOptions": {
+      "": "All stats +10\r\nSkill points +50\r\nYayoi Akikawa bond +5\r\n\r\n\r\n※ Darley Arabian's Wisdom Level is at least 1\r\nSkill points +20\r\n\r\n\r\n※ Godolphin Barb's Wisdom Level is at least 1\r\nHint for the strategy used in the race\r\n\r\n\r\n※ Byerley Turk's Wisdom Level is at least 1\r\n1 random stat +10"
+    }
+  },
+  {
+    "EventName": "グロウアップレースの後に・敗北",
+    "EventOptions": {
+      "": "All stats +5\r\nSkill points +40"
+    }
+  },
+  {
+    "EventName": "WBCの後に・勝利",
+    "EventOptions": {
+      "": "All stats +15\r\nSkill points +60\r\nYayoi Akikawa bond +5\r\n\r\n\r\n※ Darley Arabian's Wisdom Level is at least 2\r\nSkill points +30\r\n\r\n\r\n※ Godolphin Barb's Wisdom Level is at least 2\r\n2 hints for the strategy used in the race\r\n\r\n\r\n※ Byerley Turk's Wisdom Level is at least 2\r\n2 random stats +10"
+    }
+  },
+  {
+    "EventName": "WBCの後に・敗北",
+    "EventOptions": {
+      "": "All stats +10\r\nSkill points +50"
+    }
+  },
+  {
+    "EventName": "SWBCの後に・勝利",
+    "EventOptions": {
+      "": "All stats +20\r\nSkill points +70\r\nYayoi Akikawa bond +5\r\n\r\n\r\n※ Darley Arabian's Wisdom Level is at least 3\r\nSkill points +45\r\n\r\n\r\n※ Godolphin Barb's Wisdom Level is at least 3\r\n3 hints for the strategy used in the race\r\n\r\n\r\n※ Byerley Turk's Wisdom Level is at least 3\r\n3 random stats +10\r\n\r\n\r\n※ Darley Arabian's Wisdom Level is at least 3\r\n※ Godolphin Barb's Wisdom Level is at least 3\r\n※ Byerley Turk's Wisdom Level is at least 3\r\nGood Track Demon hint +1\r\n\r\n\r\n※ Win the following races: GUR, WBC, SWBC\r\nIn Body and Mind hint +1"
+    }
+  },
+  {
+    "EventName": "SWBCの後に・敗北",
+    "EventOptions": {
+      "": "All stats +15\r\nSkill points +60"
+    }
+  },
+  {
+    "EventName": "With",
+    "EventOptions": {
+      "": "※ Depending on your choice, a different 'Trust ＜From X＞' event will trigger later.\r\n\r\n\r\n※ The order of choices in this event is inconsistent, so you must match by name.\r\n\r\n\r\nMei Satake\r\n• Trust＜From Speed＞\r\n\r\n\r\nEl Condor Pasa\r\n• Trust＜From Condor＞\r\n\r\n\r\nSirius Symboli\r\n• Trust＜From Sirius＞\r\n\r\n\r\nManhattan Cafe\r\n• Trust＜From Cafe＞\r\n\r\n\r\nSatono Diamond\r\n• Trust＜From Diamond＞\r\n\r\n\r\nNakayama Festa\r\n• Trust＜From Festa＞\r\n\r\n\r\nGold Ship\r\n• Trust＜From Ship＞\r\n\r\n\r\nTap Dance City\r\n• Trust＜From Tap＞\r\n\r\n\r\nOrfevre\r\n• Trust＜From Orfevre＞\r\n\r\n\r\nBlast Onepiece\r\n• Trust＜From Blast＞"
+    }
+  },
+  {
+    "EventName": "代表交流戦第4戦の後に・発揮",
+    "EventOptions": {
+      "": "Aptitude Points +100\r\nAll stats +10\r\nSkill points +40\r\nSorry, Gotta Go! hint +1"
+    }
+  },
+  {
+    "EventName": "ロマンを求めて",
+    "EventOptions": {
+      "": "※ Win the Prix de l'Arc de Triomphe twice\r\nAll stats +30\r\nSkill points +60\r\nDreaming of the Peak hint +3\r\n\r\n\r\n※ Win the Prix de l'Arc de Triomphe\r\nAll stats +25\r\nSkill points +60\r\nDreaming of the Peak hint +1"
+    }
+  },
+  {
+    "EventName": "凱旋門賞の後に・勝利",
+    "EventOptions": {
+      "": "Aptitude Points +80\r\nAll stats +7\r\nSkill points +50\r\nStandard Distance ○ hint +1\r\nLongchamp Racecourse ○ hint +1\r\nFall Runner ○ hint +1"
+    }
+  },
+  {
+    "EventName": "フォワ賞の後に・勝利",
+    "EventOptions": {
+      "": "Aptitude Points +100\r\nAll stats +7\r\nSkill points +40\r\nBearer of Hope hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Condor＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If El Condor Pasa is scenario-linked:\r\nIt's On! hint +1\r\n\r\n\r\n※ In other cases\r\nRamp Up hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Festa＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Nakayama Festa is scenario-linked:\r\nGamester hint +1\r\n\r\n\r\n※ In other cases\r\nQuestionable Strategy hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Ship＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Gold Ship is scenario-linked:\r\nPrepared to Die hint +1\r\n\r\n\r\n※ In other cases\r\nAll That There Is hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Diamond＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Satono Diamond is scenario-linked:\r\nCenter Stage hint +1\r\n\r\n\r\n※ In other cases\r\nPrudent Positioning hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Cafe＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Manhattan Cafe is scenario-linked:\r\nInnate Experience hint +1\r\n\r\n\r\n※ In other cases\r\nInside Scoop hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Sirius＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Sirius Symboli is scenario-linked:\r\nPhoton Flash hint +1\r\n\r\n\r\n※ In other cases\r\nMedium Straightaways ○ hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Tap＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Tap Dance City is scenario-linked:\r\nMiraculous Step hint +1\r\n\r\n\r\n※ In other cases\r\nSoft Step hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Speed＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Mei Satake is scenario-linked:\r\nChild of Longchamp hint +1\r\n\r\n\r\n※ In other cases\r\nLongchamp Racecourse ○ hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Orfevre＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Orfevre is scenario-linked:\r\nOverwhelming Pressure hint +1\r\n\r\n\r\n※ In other cases\r\nPressure hint +1"
+    }
+  },
+  {
+    "EventName": "Trust＜From Blast＞",
+    "EventOptions": {
+      "": "Mood +1\r\nAll stats +10\r\n\r\n\r\n※ If Blast Onepiece is scenario-linked:\r\nLightning Step hint +1\r\n\r\n\r\n※ In other cases\r\nThunderbolt Step hint +1"
+    }
+  },
+  {
+    "EventName": "いっしょに遊ぼ！",
+    "EventOptions": {
+      "Top Option": "Energy +15"
+    }
+  },
+  {
+    "EventName": "いっしょに遊ぼ！",
+    "EventOptions": {
+      "Bottom Option": "Power +15"
+    }
+  },
+  {
+    "EventName": "さすらいの道場破ラー",
+    "EventOptions": {
+      "Top Option": "Guts +15"
+    }
+  },
+  {
+    "EventName": "さすらいの道場破ラー",
+    "EventOptions": {
+      "Bottom Option": "Energy +15"
+    }
+  },
+  {
+    "EventName": "張り切る理由は……",
+    "EventOptions": {
+      "Top Option": "Energy +15"
+    }
+  },
+  {
+    "EventName": "張り切る理由は……",
+    "EventOptions": {
+      "Bottom Option": "Speed +15"
+    }
+  },
+  {
+    "EventName": "ちゃっかりマーちゃん",
+    "EventOptions": {
+      "": "Speed +15"
+    }
+  },
+  {
+    "EventName": "ちっちゃい先輩's、がんばるっ",
+    "EventOptions": {
+      "": "Energy +5\r\nSpeed +10"
+    }
+  },
+  {
+    "EventName": "土の氣、水の氣",
+    "EventOptions": {
+      "": "Stamina +10\r\nGuts +5"
+    }
+  },
+  {
+    "EventName": "やりすぎ注意！",
+    "EventOptions": {
+      "": "Stamina +10\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "ルールは事前に確認しましょう",
+    "EventOptions": {
+      "": "Power +10\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "ヒミツの全力応援",
+    "EventOptions": {
+      "": "Power +5\r\nGuts +5\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "皆それぞれの冴えたやりかた",
+    "EventOptions": {
+      "": "Speed +5\r\nGuts +10"
+    }
+  },
+  {
+    "EventName": "白黒ぼうやの大冒険",
+    "EventOptions": {
+      "": "Guts +15"
+    }
+  },
+  {
+    "EventName": "好きなら好きと",
+    "EventOptions": {
+      "": "Speed +5\r\nWisdom +10"
+    }
+  },
+  {
+    "EventName": "好きこそものの",
+    "EventOptions": {
+      "": "Stamina +5\r\nWisdom +10"
+    }
+  },
+  {
+    "EventName": "三流派、並び立つ",
+    "EventOptions": {
+      "": "Speed +15"
+    }
+  },
+  {
+    "EventName": "燃やせ！根性とお腹周りのアレ",
+    "EventOptions": {
+      "": "Stamina +10\r\nSkill points +5"
+    }
+  },
+  {
+    "EventName": "呼吸を整えるんですのよ～",
+    "EventOptions": {
+      "": "Speed +5\r\nStamina +10"
+    }
+  },
+  {
+    "EventName": "ヒシアケボノ部屋の教え",
+    "EventOptions": {
+      "": "Power +10\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "つっぱれ！ビコーペガサス！",
+    "EventOptions": {
+      "": "Energy +5\r\nPower +5\r\nSkill points +5"
+    }
+  },
+  {
+    "EventName": "ふたりは名師範",
+    "EventOptions": {
+      "": "Guts +15"
+    }
+  },
+  {
+    "EventName": "YAWARA ROAD",
+    "EventOptions": {
+      "": "Guts +10\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "上様といえど構わん！",
+    "EventOptions": {
+      "": "Speed +5\r\nWisdom +10"
+    }
+  },
+  {
+    "EventName": "とっておきの冴えた（？）やりかた",
+    "EventOptions": {
+      "": "Speed +10\r\nStamina +5"
+    }
+  },
+  {
+    "EventName": "大切なことは！",
+    "EventOptions": {
+      "": "Speed +10\r\nGuts +5"
+    }
+  },
+  {
+    "EventName": "バクシン的特訓を、みなさんと！",
+    "EventOptions": {
+      "": "Stamina +15"
+    }
+  },
+  {
+    "EventName": "あたまのうえのお友だち",
+    "EventOptions": {
+      "": "Speed +5\r\nStamina +5\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "その思考までも",
+    "EventOptions": {
+      "": "Energy +5\r\nPower +5\r\nGuts +5"
+    }
+  },
+  {
+    "EventName": "かっ飛べ！アオハル",
+    "EventOptions": {
+      "": "Power +10\r\nWisdom +5"
+    }
+  },
+  {
+    "EventName": "こればっかりはどうしても",
+    "EventOptions": {
+      "": "Guts +15"
+    }
+  },
+  {
+    "EventName": "ゆるっと☆プール遊び",
+    "EventOptions": {
+      "": "Stamina +5\r\nGuts +10"
+    }
+  },
+  {
+    "EventName": "狼とお節介焼き",
+    "EventOptions": {
+      "": "Guts +5\r\nWisdom +10"
+    }
+  },
+  {
+    "EventName": "弓取りの如く！",
+    "EventOptions": {
+      "": "Power +5\r\nWisdom +10"
+    }
+  }
+]

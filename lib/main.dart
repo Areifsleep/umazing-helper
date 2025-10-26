@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'services/recognition_data_service.dart';
@@ -53,17 +52,31 @@ void _setupImageReceiver() {
 Future<void> _handleImageFromAndroid(dynamic arguments) async {
   try {
     final imageData = arguments['image_data'] as Uint8List?;
+    final width = arguments['width'] as int?;
+    final height = arguments['height'] as int?;
+    final format = arguments['format'] as String?;
     final isTemp = arguments['temp_processing'] as bool? ?? false;
 
-    if (imageData != null && isTemp) {
+    if (imageData != null && width != null && height != null && isTemp) {
       print(
-        '📱 Received image from Android overlay (${imageData.length} bytes)',
+        '📱 Received raw ${format ?? 'RGBA'} image from Android (${imageData.length} bytes, ${width}x${height})',
       );
 
-      // Process the image for event recognition
-      await ImageProcessorService.processTemporaryImage(imageData);
+      // ✅ OPTIMIZATION 3: Process without blocking (fire and forget)
+      // ✅ OPTIMIZATION 4: Raw RGBA bytes (no PNG decode overhead)
+      // Allows UI to remain responsive while processing
+      ImageProcessorService.processTemporaryImage(
+        imageData,
+        width: width,
+        height: height,
+        format: format ?? 'RGBA_8888',
+      ).catchError((e) {
+        print('❌ Background processing error: $e');
+      });
     } else {
-      print('❌ Invalid image data received from Android');
+      print(
+        '❌ Invalid image data received from Android (missing width/height)',
+      );
     }
   } catch (e) {
     print('❌ Error handling image from Android: $e');

@@ -1,21 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.umazing_helper">
-    <!-- Overlay permissions -->
+    <!-- Overlay permission - for EventResultOverlay display -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.INTERNET" />
     
-    <!-- Screen capture permissions (for future OCR features) -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAPTURE_VIDEO_OUTPUT" />
-    <uses-permission android:name="android.permission.MEDIA_PROJECTION" />
+    <!-- Foreground service permissions - for MediaProjectionService -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     
-    <!-- Camera permission (for OCR) -->
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Notification permission - for service notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- Screen capture permission - for OCR recognition -->
+    <uses-permission android:name="android.permission.MEDIA_PROJECTION" />
 
     <application
         android:label="umazing_helper"
@@ -42,19 +37,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Overlay Service Declaration -->
-        <!-- <service android:name="flutter.overlay.window.flutter_overlay_window.OverlayService" 
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Game assistance overlay for Uma Musume event recognition and guidance"/>
-        </service> -->
+        <!-- MediaProjection Service - handles screen capture -->
         <service
             android:name=".MediaProjectionService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" 
             android:stopWithTask="false" />
+        
+        <!-- Overlay Service - manages scan button overlay -->
         <service
             android:name=".OverlayService"
             android:enabled="true"

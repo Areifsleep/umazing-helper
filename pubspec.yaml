@@ -69,6 +69,8 @@ flutter:
   assets:
     - assets/data/support_card.json
     - assets/data/uma_data.json
+    - assets/data/career.json
+    - assets/data/races.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

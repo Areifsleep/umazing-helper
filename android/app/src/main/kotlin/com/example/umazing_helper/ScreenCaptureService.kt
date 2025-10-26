@@ -39,23 +39,27 @@ class ScreenCaptureService(private val context: Context) {
             // Calculate event title region (percentage-based)
             val eventTitleRegion = CaptureRegion(
                 x = (dimensions.width * 0.08).toInt(),      // 8% from left
-                y = (dimensions.height * 0.18).toInt(),     // 25% from top  
+                y = (dimensions.height * 0.18).toInt(),     // 18% from top  
                 width = (dimensions.width * 0.84).toInt(),  // 84% width
                 height = (dimensions.height * 0.08).toInt() // 8% height
             )
             
             AppLogger.d("ScreenCaptureService", "Event title region: x=${eventTitleRegion.x}, y=${eventTitleRegion.y}, w=${eventTitleRegion.width}, h=${eventTitleRegion.height}")
             
-            // Capture full screen first
-            val fullScreenResult = captureScreen()
+            // 🚀 OPTIMIZED: Capture region directly (no full screen capture + crop)
+            val regionBitmap = captureRegionDirectly(eventTitleRegion, dimensions)
             
-            if (fullScreenResult is CaptureResult.Success) {
-                // Crop to event title region
-                val croppedImageData = cropImageToRegion(fullScreenResult.imageData, eventTitleRegion)
-                AppLogger.d("ScreenCaptureService", "Event title capture successful: ${croppedImageData.size} bytes")
-                CaptureResult.Success(croppedImageData)
+            if (regionBitmap != null) {
+                // Convert to raw RGBA bytes (no PNG compression)
+                val rawBytes = bitmapToRawBytes(regionBitmap)
+                val width = regionBitmap.width
+                val height = regionBitmap.height
+                regionBitmap.recycle()
+                
+                AppLogger.d("ScreenCaptureService", "✅ Event title captured: ${rawBytes.size} bytes (raw RGBA ${width}x${height})")
+                CaptureResult.Success(rawBytes, width, height)
             } else {
-                fullScreenResult
+                CaptureResult.Error("Failed to capture region")
             }
             
         } catch (e: Exception) {
@@ -63,228 +67,207 @@ class ScreenCaptureService(private val context: Context) {
             CaptureResult.Error("Event title capture failed: ${e.message}")
         }
     }
-
-    private fun cropImageToRegion(imageData: ByteArray, region: CaptureRegion): ByteArray {
-        return try {
-            // Convert bytes to bitmap
-            val fullBitmap = android.graphics.BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
-                ?: throw Exception("Failed to decode image data")
-            
-            // Validate region bounds
-            val validRegion = CaptureRegion(
-                x = maxOf(0, minOf(region.x, fullBitmap.width - 1)),
-                y = maxOf(0, minOf(region.y, fullBitmap.height - 1)),
-                width = maxOf(1, minOf(region.width, fullBitmap.width - region.x)),
-                height = maxOf(1, minOf(region.height, fullBitmap.height - region.y))
-            )
-            
-            // Crop bitmap to region
-            val croppedBitmap = Bitmap.createBitmap(
-                fullBitmap,
-                validRegion.x,
-                validRegion.y,
-                validRegion.width,
-                validRegion.height
-            )
-            
-            // Convert cropped bitmap back to bytes
-            val stream = ByteArrayOutputStream()
-            croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            val croppedBytes = stream.toByteArray()
-            
-            // Cleanup
-            fullBitmap.recycle()
-            croppedBitmap.recycle()
-            
-            AppLogger.d("ScreenCaptureService", "Cropped to event title region: ${croppedBytes.size} bytes")
-            croppedBytes
-            
-        } catch (e: Exception) {
-            AppLogger.e("ScreenCaptureService", "Error cropping to event title region", e)
-            throw e
-        }
-    }
     
-    suspend fun captureScreen(): CaptureResult = withContext(Dispatchers.IO) {
+    // 🚀 NEW: Capture region directly (faster than full screen + crop)
+    private suspend fun captureRegionDirectly(
+        region: CaptureRegion,
+        dimensions: ScreenDimensions
+    ): Bitmap? = withContext(Dispatchers.IO) {
         try {
             val projection = MediaProjectionManager.getInstance().getProjection()
-                ?: return@withContext CaptureResult.Error("MediaProjection not available")
+                ?: return@withContext null
             
             if (!MediaProjectionManager.getInstance().isProjectionValid()) {
-                return@withContext CaptureResult.Error("MediaProjection is invalid")
+                return@withContext null
             }
             
             AppLogger.d("ScreenCaptureService", "Using validated MediaProjection")
             
-            val dimensions = getScreenDimensions()
-            val imageData = performCaptureWithRetry(projection, dimensions)
+            // Capture full screen bitmap with retry
+            val fullBitmap = captureFullScreenBitmap(projection, dimensions)
             
-            AppLogger.d("ScreenCaptureService", "Capture successful: ${imageData.size} bytes")
-            CaptureResult.Success(imageData)
+            if (fullBitmap != null) {
+                // Crop to region
+                val croppedBitmap = Bitmap.createBitmap(
+                    fullBitmap,
+                    region.x,
+                    region.y,
+                    region.width,
+                    region.height
+                )
+                fullBitmap.recycle() // Free memory immediately
+                croppedBitmap
+            } else {
+                null
+            }
             
         } catch (e: Exception) {
-            AppLogger.e("ScreenCaptureService", "Capture failed", e)
-            CaptureResult.Error("Screen capture failed: ${e.message}")
+            AppLogger.e("ScreenCaptureService", "Error capturing region", e)
+            null
         } finally {
             cleanup()
         }
     }
     
-    // ✅ New: Retry logic for Android 13+ empty buffer issue
-    private suspend fun performCaptureWithRetry(
-        projection: MediaProjection, 
-        dimensions: ScreenDimensions,
-        maxRetries: Int = 5
-    ): ByteArray {
-        var lastException: Exception? = null
+    // 🚀 OPTIMIZED: Direct bitmap capture with Android 13+ fix
+    private suspend fun captureFullScreenBitmap(
+        projection: MediaProjection,
+        dimensions: ScreenDimensions
+    ): Bitmap? {
+        var attempt = 0
+        val maxAttempts = 3 // Reduced from 5 to 3 for speed
         
-        repeat(maxRetries) { attempt ->
+        while (attempt < maxAttempts) {
+            attempt++
+            AppLogger.d("ScreenCaptureService", "Capture attempt $attempt/$maxAttempts")
+            
             try {
-                AppLogger.d("ScreenCaptureService", "Capture attempt ${attempt + 1}/$maxRetries")
+                val bitmap = performSingleBitmapCapture(projection, dimensions, attempt)
                 
-                // Create fresh VirtualDisplay for each attempt
-                val imageData = performSingleCapture(projection, dimensions)
-                
-                // Validate the captured image
-                if (isImageValid(imageData)) {
-                    AppLogger.d("ScreenCaptureService", "✅ Valid image captured on attempt ${attempt + 1}")
-                    return imageData
+                if (bitmap != null && !bitmap.isEmptyBitmap()) {
+                    AppLogger.d("ScreenCaptureService", "✅ Valid bitmap captured on attempt $attempt")
+                    return bitmap
                 } else {
-                    AppLogger.w("ScreenCaptureService", "⚠️ Empty/invalid image on attempt ${attempt + 1}, retrying...")
+                    bitmap?.recycle()
+                    AppLogger.w("ScreenCaptureService", "📷 Empty bitmap on attempt $attempt")
                     
-                    // Small delay before retry
-                    delay(100)
+                    // Small delay before retry (shorter for speed)
+                    if (attempt < maxAttempts) {
+                        delay(50) // Reduced from 100ms to 50ms
+                    }
                 }
                 
             } catch (e: Exception) {
-                lastException = e
-                AppLogger.w("ScreenCaptureService", "❌ Attempt ${attempt + 1} failed: ${e.message}")
-                
-                // Cleanup before retry
+                AppLogger.w("ScreenCaptureService", "❌ Attempt $attempt failed: ${e.message}")
                 cleanup()
-                delay(200)
+                
+                if (attempt < maxAttempts) {
+                    delay(50)
+                }
             }
         }
         
-        throw Exception("Failed to capture valid image after $maxRetries attempts. Last error: ${lastException?.message}")
+        AppLogger.e("ScreenCaptureService", "❌ All $maxAttempts attempts failed")
+        return null
     }
     
-    // ✅ Updated: Single capture with timeout
-    private suspend fun performSingleCapture(
-        projection: MediaProjection, 
-        dimensions: ScreenDimensions
-    ): ByteArray = withTimeout(2000) { // 2 second timeout
-        suspendCoroutine { continuation ->
-            try {
-                captureHandler = Handler(Looper.getMainLooper())
+    // 🚀 OPTIMIZED: Single bitmap capture with minimal delay
+    private suspend fun performSingleBitmapCapture(
+        projection: MediaProjection,
+        dimensions: ScreenDimensions,
+        attemptNumber: Int
+    ): Bitmap? = suspendCoroutine { continuation ->
+        var resumed = false
+        
+        try {
+            imageReader = ImageReader.newInstance(
+                dimensions.width,
+                dimensions.height,
+                PixelFormat.RGBA_8888,
+                2
+            )
+            
+            virtualDisplay = projection.createVirtualDisplay(
+                "ScreenCapture",
+                dimensions.width,
+                dimensions.height,
+                dimensions.density,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                imageReader!!.surface,
+                null,
+                null
+            )
+            
+            AppLogger.d("ScreenCaptureService", "VirtualDisplay created: ${dimensions.width}x${dimensions.height}")
+            
+            // 🚀 Android 13+ FIX: Wait for display to render
+            val delayMs = if (attemptNumber == 1) 120L else 80L // First attempt longer
+            
+            GlobalScope.launch(Dispatchers.IO) {
+                delay(delayMs)
                 
-                // Create fresh ImageReader for this attempt
-                imageReader = ImageReader.newInstance(
-                    dimensions.width,
-                    dimensions.height,
-                    PixelFormat.RGBA_8888,
-                    2 // Allow 2 images for better reliability
-                )
-                
-                var imageProcessed = false
-                var emptyImageCount = 0
-                
-                imageReader!!.setOnImageAvailableListener({ reader ->
-                    if (imageProcessed) return@setOnImageAvailableListener
-                    
-                    var image: Image? = null
+                if (!resumed) {
                     try {
-                        image = reader.acquireLatestImage()
+                        val image = imageReader?.acquireLatestImage()
+                        
                         if (image != null) {
                             val bitmap = convertImageToBitmapSafely(image, dimensions)
+                            image.close()
                             
-                            // ✅ Check if bitmap is empty (Android 13+ bug)
-                            if (bitmap.isEmptyBitmap()) {
-                                emptyImageCount++
-                                AppLogger.w("ScreenCaptureService", "📷 Empty bitmap received (count: $emptyImageCount)")
-                                
-                                if (emptyImageCount >= 3) {
-                                    imageProcessed = true
-                                    continuation.resumeWithException(Exception("Too many empty bitmaps"))
-                                }
-                                // Don't stop listener, wait for next image
-                                return@setOnImageAvailableListener
-                            }
-                            
-                            imageProcessed = true
-                            val bytes = bitmapToByteArray(bitmap)
-                            continuation.resume(bytes)
+                            resumed = true
+                            continuation.resume(bitmap)
+                        } else {
+                            resumed = true
+                            continuation.resume(null)
                         }
                     } catch (e: Exception) {
-                        if (!imageProcessed) {
-                            imageProcessed = true
-                            continuation.resumeWithException(e)
-                        }
-                    } finally {
-                        image?.close()
+                        resumed = true
+                        continuation.resume(null)
                     }
-                }, captureHandler)
-                
-                // Create VirtualDisplay for this capture
-                virtualDisplay = projection.createVirtualDisplay(
-                    "ScreenCapture-${System.currentTimeMillis()}",
-                    dimensions.width,
-                    dimensions.height,
-                    dimensions.density,
-                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                    imageReader!!.surface,
-                    null,
-                    null
-                )
-                
-                AppLogger.d("ScreenCaptureService", "VirtualDisplay created: ${dimensions.width}x${dimensions.height}")
-                
-            } catch (e: Exception) {
-                continuation.resumeWithException(e)
+                }
+            }
+            
+            // Timeout after 500ms
+            GlobalScope.launch(Dispatchers.IO) {
+                delay(500)
+                if (!resumed) {
+                    resumed = true
+                    continuation.resume(null)
+                }
+            }
+            
+        } catch (e: Exception) {
+            if (!resumed) {
+                resumed = true
+                continuation.resume(null)
             }
         }
     }
     
-    // ✅ Add empty bitmap detection
-    // ScreenCaptureService.kt (Fixed isEmptyBitmap method)
+    // 🚀 OPTIMIZED: Convert to raw RGBA bytes (no PNG compression)
+    private fun bitmapToRawBytes(bitmap: Bitmap): ByteArray {
+        return try {
+            val byteCount = bitmap.byteCount
+            val buffer = java.nio.ByteBuffer.allocate(byteCount)
+            bitmap.copyPixelsToBuffer(buffer)
+            buffer.array()
+        } catch (e: Exception) {
+            AppLogger.e("ScreenCaptureService", "Error converting bitmap to raw bytes", e)
+            throw e
+        }
+    }
+    
+    // 🚀 OPTIMIZED: Fast empty bitmap detection (5 pixel check)
     private fun Bitmap.isEmptyBitmap(): Boolean {
         return try {
-            // ✅ Fix: Handle nullable config
-            val bitmapConfig = this.config ?: Bitmap.Config.ARGB_8888
-            val emptyBitmap = Bitmap.createBitmap(width, height, bitmapConfig)
-            val result = this.sameAs(emptyBitmap)
-            emptyBitmap.recycle()
-            result
+            if (width == 0 || height == 0) return true
+            
+            // Quick check: Sample only 5 pixels
+            val centerX = width / 2
+            val centerY = height / 2
+            
+            val pixels = intArrayOf(
+                getPixel(centerX, centerY),
+                getPixel(centerX / 2, centerY / 2),
+                getPixel(centerX * 3 / 4, centerY * 3 / 4),
+                getPixel(10.coerceAtMost(width - 1), 10.coerceAtMost(height - 1)),
+                getPixel((width - 10).coerceAtLeast(0), (height - 10).coerceAtLeast(0))
+            )
+            
+            // At least 3 out of 5 pixels should be non-zero
+            val nonZeroCount = pixels.count { it != 0 }
+            nonZeroCount < 3
+            
         } catch (e: Exception) {
             AppLogger.e("ScreenCaptureService", "Error checking empty bitmap", e)
             false
         }
     }
     
-    // ✅ Add image validation
-    private fun isImageValid(imageData: ByteArray): Boolean {
-        if (imageData.size < 1000) {
-            AppLogger.d("ScreenCaptureService", "❌ Image too small: ${imageData.size} bytes")
-            return false
-        }
-        
-        // Check if image is mostly zeros (blank/black)
-        var nonZeroBytes = 0
-        val sampleSize = minOf(1000, imageData.size)
-        
-        for (i in 0 until sampleSize) {
-            if (imageData[i] != 0.toByte()) {
-                nonZeroBytes++
-            }
-        }
-        
-        val nonZeroPercentage = (nonZeroBytes.toFloat() / sampleSize * 100)
-        AppLogger.d("ScreenCaptureService", "📊 Image validation: ${nonZeroPercentage.toInt()}% non-zero bytes")
-        
-        return nonZeroPercentage > 5 // At least 5% should be non-zero
-    }
-    
-    // ... rest of your existing methods (convertImageToBitmapSafely, bitmapToByteArray, etc.)
+    // Remove old methods (not needed anymore)
+    // ❌ REMOVED: bitmapToByteArray() - replaced with bitmapToRawBytes()
+    // ❌ REMOVED: isImageValid() - replaced with isEmptyBitmap()
+    // ❌ REMOVED: cropImageToRegion() - now done in-memory
     
     private fun convertImageToBitmapSafely(image: Image, dimensions: ScreenDimensions): Bitmap {
         try {
@@ -317,20 +300,6 @@ class ScreenCaptureService(private val context: Context) {
             
         } catch (e: Exception) {
             AppLogger.e("ScreenCaptureService", "Error converting image to bitmap", e)
-            throw e
-        }
-    }
-    
-    private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
-        return try {
-            val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            val bytes = stream.toByteArray()
-            bitmap.recycle()
-            AppLogger.d("ScreenCaptureService", "Bitmap converted to ${bytes.size} bytes")
-            bytes
-        } catch (e: Exception) {
-            AppLogger.e("ScreenCaptureService", "Error converting bitmap to bytes", e)
             throw e
         }
     }
