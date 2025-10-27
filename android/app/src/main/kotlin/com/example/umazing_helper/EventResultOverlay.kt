@@ -32,7 +32,7 @@ class EventResultOverlay(private val context: Context) {
         removeOverlay() // Remove any existing overlay
         
         // Only show success modal if confidence >= 95%
-        if (result.confidence < 0.95) {
+        if (result.confidence < 0.94) {
             showErrorDialog(result.confidence)
             return
         }
@@ -246,15 +246,16 @@ class EventResultOverlay(private val context: Context) {
             orientation = LinearLayout.VERTICAL
         }
         
-        // Sort options to display in correct order: Top Option → Bottom Option → Option 1-5 → Choice 1-10
+        // Sort options to display in correct order: Top Option → Middle Option → Bottom Option → Option 1-5 → Choice 1-10
         val sortedOptions = result.options.entries.sortedWith(compareBy { entry ->
             val key = entry.key.lowercase()
             when {
                 key.contains("top option") -> 0
-                key.contains("bottom option") -> 1
+                key.contains("middle option") -> 1
+                key.contains("bottom option") -> 2
                 key.matches(Regex("option\\s*\\d+", RegexOption.IGNORE_CASE)) -> {
                     val num = key.filter { it.isDigit() }.toIntOrNull() ?: 99
-                    100 + num // Options come after Top/Bottom
+                    100 + num // Options come after Top/Middle/Bottom
                 }
                 key.matches(Regex("choice\\s*\\d+", RegexOption.IGNORE_CASE)) -> {
                     val num = key.filter { it.isDigit() }.toIntOrNull() ?: 99

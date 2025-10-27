@@ -246,10 +246,18 @@ class ScreenRecognitionService {
       // Check uma character events
       if (!foundPerfectMatch) {
         // ✅ Skip if perfect match found
+        final selectedChar = RecognitionDataService.getSelectedCharacter();
+
         for (var character in umaCharacters) {
           if (foundPerfectMatch) break;
 
           final characterName = character['UmaName']?.toString() ?? '';
+
+          // 🎯 FILTER: Skip this character if a specific character is selected
+          if (selectedChar != null && characterName != selectedChar) {
+            continue; // Only search in selected character
+          }
+
           final events = character['UmaEvents'] as List? ?? [];
 
           for (var event in events) {

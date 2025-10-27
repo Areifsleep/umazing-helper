@@ -21,6 +21,11 @@ class MainActivity : FlutterActivity() {
 
         // Add static reference for OverlayService to access
         var instance: MainActivity? = null
+        
+        // Get the method channel instance
+        fun getMethodChannel(): MethodChannel? {
+            return instance?.methodChannel
+        }
     }
 
     private lateinit var permissionManager: PermissionManager

@@ -5,6 +5,9 @@ import 'services/screen_recognition_service.dart';
 import 'services/image_processor_service.dart';
 import 'screens/screen_capture_screen.dart';
 
+// Global navigator key to access context from anywhere
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,12 +43,74 @@ void _setupImageReceiver() {
       case 'onImageCaptured':
         await _handleImageFromAndroid(call.arguments);
         break;
+      case 'showCharacterModal':
+        _showCharacterModalFromOverlay();
+        break;
+      case 'updateCharacterSelection':
+        _updateCharacterSelectionFromAndroid(call.arguments);
+        break;
+      case 'syncCharacterSelectionUI':
+        _syncCharacterSelectionUI(call.arguments);
+        break;
+      case 'getCharacterList':
+        return await _getCharacterListForAndroid();
       default:
         print('Unknown method from Android: ${call.method}');
     }
   });
 
   print('📡 Image receiver setup completed');
+}
+
+/// Update character selection from Android overlay
+void _updateCharacterSelectionFromAndroid(dynamic arguments) {
+  try {
+    final character = arguments['character'] as String?;
+    RecognitionDataService.setSelectedCharacter(character);
+    print(
+      '✅ Character selection updated from Android: ${character ?? "All Characters"}',
+    );
+  } catch (e) {
+    print('❌ Error updating character selection from Android: $e');
+  }
+}
+
+/// Sync character selection UI when Android overlay makes a selection
+void _syncCharacterSelectionUI(dynamic arguments) {
+  try {
+    final character = arguments?['character'] as String?;
+    print('🔄 Syncing UI state from Android: ${character ?? "All Characters"}');
+
+    // Notify ScreenCaptureScreen to update its UI
+    ScreenCaptureScreen.updateCharacterSelectionGlobal(character);
+  } catch (e) {
+    print('❌ Error syncing character selection UI: $e');
+  }
+}
+
+/// Get character list for Android native overlay
+Future<List<String>> _getCharacterListForAndroid() async {
+  try {
+    final characters = await RecognitionDataService.getAllCharacterNames();
+    print('📤 Sending ${characters.length} characters to Android');
+    return characters;
+  } catch (e) {
+    print('❌ Error getting character list for Android: $e');
+    return [];
+  }
+}
+
+/// Show character selection modal from overlay button
+void _showCharacterModalFromOverlay() {
+  final context = navigatorKey.currentContext;
+  if (context == null) {
+    print('❌ Cannot show character modal: No navigator context available');
+    return;
+  }
+
+  // Find the ScreenCaptureScreen in the widget tree and call its method
+  // We'll need to access this through a global method
+  ScreenCaptureScreen.showCharacterSelectionModalGlobal(context);
 }
 
 /// Handle image data received from Android overlay service
@@ -136,7 +201,8 @@ class _UmaHelperAppState extends State<UmaHelperApp>
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Uma Helper',
+      title: 'Umazing Helper',
+      navigatorKey: navigatorKey, // Add the global navigator key
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,

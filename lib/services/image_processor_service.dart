@@ -48,7 +48,7 @@ class ImageProcessorService {
         'options': result.options,
       });
 
-      if (result.success && (result.confidence ?? 0.0) >= 0.95) {
+      if (result.success && (result.confidence ?? 0.0) >= 0.94) {
         print(
           '📱 Success overlay shown (confidence: ${((result.confidence ?? 0) * 100).toInt()}%)',
         );

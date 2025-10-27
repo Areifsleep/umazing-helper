@@ -8,6 +8,45 @@ class RecognitionDataService {
   static List<dynamic>? _cachedCareerData;
   static List<dynamic>? _cachedRacesData;
 
+  /// Selected Uma character for filtering (null = all characters)
+  static String? selectedCharacter;
+
+  /// Get list of all Uma character names for selection dropdown
+  /// Returns unique character names (removes duplicates)
+  static Future<List<String>> getAllCharacterNames() async {
+    final characters = await getUmaData();
+    Set<String> uniqueNames = {}; // Use Set to automatically remove duplicates
+
+    for (var character in characters) {
+      final name = character['UmaName']?.toString();
+      if (name != null && name.isNotEmpty) {
+        uniqueNames.add(name); // Set ignores duplicates
+      }
+    }
+
+    List<String> names = uniqueNames.toList();
+    names.sort(); // Sort alphabetically
+    print(
+      '✅ Loaded ${names.length} unique Uma character names (${characters.length} total entries)',
+    );
+    return names;
+  }
+
+  /// Set the selected character filter
+  static void setSelectedCharacter(String? characterName) {
+    selectedCharacter = characterName;
+    if (characterName == null) {
+      print('🔄 Character filter cleared (All Characters)');
+    } else {
+      print('🎯 Character filter set to: $characterName');
+    }
+  }
+
+  /// Get the currently selected character
+  static String? getSelectedCharacter() {
+    return selectedCharacter;
+  }
+
   /// Load support card recognition data
   static Future<List<dynamic>> getSupportCardData() async {
     if (_cachedSupportCards == null) {

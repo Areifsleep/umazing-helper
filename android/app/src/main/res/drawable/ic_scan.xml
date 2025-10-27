@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Top-left corner - bigger frame -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M 3,3 L 3,9 M 3,3 L 9,3" />
+    
+    <!-- Top-right corner - bigger frame -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M 21,3 L 15,3 M 21,3 L 21,9" />
+    
+    <!-- Bottom-left corner - bigger frame -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M 3,21 L 3,15 M 3,21 L 9,21" />
+    
+    <!-- Bottom-right corner - bigger frame -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M 21,21 L 21,15 M 21,21 L 15,21" />
+    
+    <!-- Green "U" letter in the center - slightly bigger -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M 8,7 L 8,14 Q 8,17 12,17 Q 16,17 16,14 L 16,7 L 14,7 L 14,14 Q 14,15 12,15 Q 10,15 10,14 L 10,7 Z" />
+</vector>

@@ -1,14 +1,21 @@
-// OverlayManager.kt (Updated with drag functionality)
+// OverlayManager.kt (Updated with drag functionality and long-press)
 package com.example.umazing_helper
 
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.view.*
 import android.widget.Button
+import android.widget.ImageButton
+import io.flutter.plugin.common.MethodChannel
 import kotlin.math.abs
 
-class OverlayManager(private val context: Context) {
+class OverlayManager(
+    private val context: Context,
+    private val methodChannel: MethodChannel? = null
+) {
     
     private val windowManager by lazy {
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -16,6 +23,7 @@ class OverlayManager(private val context: Context) {
     
     private var overlayView: View? = null
     private var onScanClickListener: (() -> Unit)? = null
+    private var characterSelectionOverlay: CharacterSelectionOverlay? = null
     
     // Drag-related variables
     private var isDragging = false
@@ -24,6 +32,13 @@ class OverlayManager(private val context: Context) {
     private var initialTouchX = 0f
     private var initialTouchY = 0f
     private val CLICK_DRAG_TOLERANCE = 10f // Distance threshold for click vs drag
+    
+    // Long-press related variables
+    private val longPressHandler = Handler(Looper.getMainLooper())
+    private var longPressRunnable: Runnable? = null
+    private var isLongPressTriggered = false
+    private var isCharacterModalShown = false // Prevent showing modal multiple times
+    private val LONG_PRESS_DURATION = 500L // 500ms for long press
     
     fun createOverlay(onScanClick: () -> Unit) {
         // Fix: Use the companion object method
@@ -44,8 +59,8 @@ class OverlayManager(private val context: Context) {
     
     private fun setupOverlayView() {
         overlayView?.let { view ->
-            // Find the scan button in your layout
-            val scanButton = view.findViewById<Button>(R.id.scanButton)
+            // Find the scan button in your layout (now ImageButton)
+            val scanButton = view.findViewById<ImageButton>(R.id.scanButton)
             
             scanButton?.let { button ->
                 // Set up touch listener for drag functionality
@@ -66,12 +81,35 @@ class OverlayManager(private val context: Context) {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     isDragging = false
+                    isLongPressTriggered = false
                     
                     // Store initial positions
                     initialX = layoutParams.x
                     initialY = layoutParams.y
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
+                    
+                    // Start long-press timer
+                    longPressRunnable = Runnable {
+                        if (!isDragging && !isCharacterModalShown) {
+                            try {
+                                isLongPressTriggered = true
+                                isCharacterModalShown = true
+                                AppLogger.d("OverlayManager", "⏱️ Long press detected - showing character overlay")
+                                
+                                // Show character selection overlay
+                                if (characterSelectionOverlay == null) {
+                                    characterSelectionOverlay = CharacterSelectionOverlay(context)
+                                }
+                                characterSelectionOverlay?.showOverlay()
+                            } catch (e: Exception) {
+                                AppLogger.e("OverlayManager", "❌ Error showing character overlay", e)
+                                isCharacterModalShown = false
+                                isLongPressTriggered = false
+                            }
+                        }
+                    }
+                    longPressHandler.postDelayed(longPressRunnable!!, LONG_PRESS_DURATION)
                     
                     AppLogger.d("OverlayManager", "👆 Touch started at: ${event.rawX}, ${event.rawY}")
                     true
@@ -87,6 +125,9 @@ class OverlayManager(private val context: Context) {
                     if (distance > CLICK_DRAG_TOLERANCE) {
                         isDragging = true
                         
+                        // Cancel long-press if user is dragging
+                        longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+                        
                         // Update overlay position
                         layoutParams.x = initialX + deltaX.toInt()
                         layoutParams.y = initialY + deltaY.toInt()
@@ -100,8 +141,14 @@ class OverlayManager(private val context: Context) {
                 }
                 
                 MotionEvent.ACTION_UP -> {
-                    if (!isDragging) {
-                        // This was a click, not a drag
+                    // Cancel long-press if not triggered
+                    longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+                    
+                    if (isLongPressTriggered) {
+                        // Long press was triggered - don't trigger click
+                        AppLogger.d("OverlayManager", "⏱️ Long press completed")
+                    } else if (!isDragging) {
+                        // This was a normal click, not a drag or long-press
                         AppLogger.d("OverlayManager", "👆 Click detected - triggering scan")
                         onScanClickListener?.invoke()
                     } else {
@@ -111,6 +158,17 @@ class OverlayManager(private val context: Context) {
                     }
                     
                     isDragging = false
+                    isLongPressTriggered = false
+                    isCharacterModalShown = false // Reset flag when touch is released
+                    true
+                }
+                
+                MotionEvent.ACTION_CANCEL -> {
+                    // Cancel long-press if touch is cancelled
+                    longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+                    isDragging = false
+                    isLongPressTriggered = false
+                    isCharacterModalShown = false // Reset flag when touch is cancelled
                     true
                 }
                 
@@ -182,6 +240,14 @@ class OverlayManager(private val context: Context) {
     
     fun removeOverlay() {
         try {
+            // Cancel any pending long-press callbacks
+            longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+            longPressRunnable = null
+            
+            // Remove character selection overlay if shown
+            characterSelectionOverlay?.removeOverlay()
+            characterSelectionOverlay = null
+            
             overlayView?.let { view ->
                 windowManager.removeView(view)
                 overlayView = null

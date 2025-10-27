@@ -69,7 +69,7 @@ class OverlayService : Service() {
     }
     
     private fun initializeServices() {
-        overlayManager = OverlayManager(this)
+        overlayManager = OverlayManager(this, MainActivity.getMethodChannel())
         screenCaptureService = ScreenCaptureService(this)
     }
     

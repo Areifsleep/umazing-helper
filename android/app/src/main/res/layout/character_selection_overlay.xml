@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="12dp"
+    android:elevation="8dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Select Uma Character"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:text="✕"
+            android:textSize="18sp"
+            android:background="@android:color/transparent"
+            android:textColor="#666666"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Search Box -->
+    <EditText
+        android:id="@+id/searchEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search character..."
+        android:padding="10dp"
+        android:background="#F0F0F0"
+        android:textSize="13sp"
+        android:singleLine="true"
+        android:imeOptions="actionDone"
+        android:inputType="text" />
+
+    <!-- Character List (Fixed height for 6 items ~300dp) -->
+    <ListView
+        android:id="@+id/characterListView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="8dp"
+        android:divider="#E0E0E0"
+        android:dividerHeight="1dp"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="outsideOverlay"
+        android:fadingEdge="vertical"
+        android:fadingEdgeLength="20dp"
+        android:clipToPadding="false" />
+
+</LinearLayout>
