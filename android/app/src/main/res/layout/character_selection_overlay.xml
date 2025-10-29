@@ -49,6 +49,20 @@
         android:imeOptions="actionDone"
         android:inputType="text" />
 
+    <!-- Customize Region Button -->
+    <Button
+        android:id="@+id/customizeRegionButton"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginTop="8dp"
+        android:text="⚙️ Customize Scan Region"
+        android:textSize="12sp"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/btn_customize_region"
+        android:elevation="2dp"
+        android:clickable="true"
+        android:focusable="true" />
+
     <!-- Character List (Fixed height for 6 items ~300dp) -->
     <ListView
         android:id="@+id/characterListView"

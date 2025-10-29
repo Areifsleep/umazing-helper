@@ -30,19 +30,40 @@ class ScreenCaptureService(private val context: Context) {
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
     private var captureHandler: Handler? = null
+    
+    private fun getCustomRegionOrDefault(dimensions: ScreenDimensions): CaptureRegion {
+        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        
+        // Try to load custom region from SharedPreferences
+        val hasCustomRegion = prefs.contains("flutter.capture_region_x")
+        
+        return if (hasCustomRegion) {
+            val x = prefs.getInt("flutter.capture_region_x", 53)
+            val y = prefs.getInt("flutter.capture_region_y", 485)
+            val width = prefs.getInt("flutter.capture_region_width", 973)
+            val height = prefs.getInt("flutter.capture_region_height", 128)
+            
+            AppLogger.d("ScreenCaptureService", "Using custom region: ($x, $y, $width, $height)")
+            CaptureRegion(x, y, width, height)
+        } else {
+            // Default: percentage-based calculation (works on most devices)
+            AppLogger.d("ScreenCaptureService", "Using default percentage-based region")
+            CaptureRegion(
+                x = (dimensions.width * 0.08).toInt(),      // 8% from left
+                y = (dimensions.height * 0.18).toInt(),     // 18% from top  
+                width = (dimensions.width * 0.84).toInt(),  // 84% width
+                height = (dimensions.height * 0.08).toInt() // 8% height
+            )
+        }
+    }
 
     suspend fun captureEventTitleRegion(): CaptureResult = withContext(Dispatchers.IO) {
         try {
             // Get screen dimensions
             val dimensions = getScreenDimensions()
             
-            // Calculate event title region (percentage-based)
-            val eventTitleRegion = CaptureRegion(
-                x = (dimensions.width * 0.08).toInt(),      // 8% from left
-                y = (dimensions.height * 0.18).toInt(),     // 18% from top  
-                width = (dimensions.width * 0.84).toInt(),  // 84% width
-                height = (dimensions.height * 0.08).toInt() // 8% height
-            )
+            // Get custom region or use default
+            val eventTitleRegion = getCustomRegionOrDefault(dimensions)
             
             AppLogger.d("ScreenCaptureService", "Event title region: x=${eventTitleRegion.x}, y=${eventTitleRegion.y}, w=${eventTitleRegion.width}, h=${eventTitleRegion.height}")
             

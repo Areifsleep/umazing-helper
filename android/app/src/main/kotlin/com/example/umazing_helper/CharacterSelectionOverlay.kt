@@ -190,6 +190,7 @@ class CharacterSelectionOverlay(
             val closeButton = view.findViewById<Button>(R.id.closeButton)
             val searchEditText = view.findViewById<EditText>(R.id.searchEditText)
             val characterListView = view.findViewById<ListView>(R.id.characterListView)
+            val customizeRegionButton = view.findViewById<Button>(R.id.customizeRegionButton)
             
             AppLogger.d("CharacterSelectionOverlay", "Setting up overlay view with ${filteredCharacters.size} characters")
             
@@ -242,6 +243,13 @@ class CharacterSelectionOverlay(
             closeButton.setOnClickListener {
                 AppLogger.d("CharacterSelectionOverlay", "Close button clicked")
                 removeOverlay()
+            }
+            
+            // Customize Region button
+            customizeRegionButton.setOnClickListener {
+                AppLogger.d("CharacterSelectionOverlay", "Customize Region button clicked")
+                showToast("🔧 Opening region customization...")
+                openRegionCustomizer()
             }
             
             // Handle outside touches to close overlay
@@ -349,6 +357,24 @@ class CharacterSelectionOverlay(
             }
         } catch (e: Exception) {
             AppLogger.e("CharacterSelectionOverlay", "Failed to sync UI with Flutter", e)
+        }
+    }
+    
+    private fun openRegionCustomizer() {
+        try {
+            AppLogger.d("CharacterSelectionOverlay", "Opening region customizer overlay...")
+            
+            // Close current overlay first
+            removeOverlay()
+            
+            // Show native region customizer overlay (live overlay on top of game)
+            val regionCustomizer = RegionCustomizerOverlay(context)
+            regionCustomizer.show()
+            
+            AppLogger.d("CharacterSelectionOverlay", "✅ Region customizer overlay opened")
+        } catch (e: Exception) {
+            AppLogger.e("CharacterSelectionOverlay", "Failed to open region customizer", e)
+            showToast("❌ Failed to open customizer")
         }
     }
     

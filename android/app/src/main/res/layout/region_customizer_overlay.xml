@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00000000">
+    
+    <FrameLayout
+        android:id="@+id/selectionBox"
+        android:layout_width="900dp"
+        android:layout_height="150dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="500dp"
+        android:background="@drawable/selection_box_background">
+        
+        <View
+            android:id="@+id/handleTopLeft"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="start|top"
+            android:layout_margin="-12dp"
+            android:background="@drawable/handle_corner" />
+        
+        <View
+            android:id="@+id/handleTopRight"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="end|top"
+            android:layout_margin="-12dp"
+            android:background="@drawable/handle_corner" />
+        
+        <View
+            android:id="@+id/handleBottomLeft"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="start|bottom"
+            android:layout_margin="-12dp"
+            android:background="@drawable/handle_corner" />
+        
+        <View
+            android:id="@+id/handleBottomRight"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="-12dp"
+            android:background="@drawable/handle_corner" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Drag to adjust region"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:shadowColor="#000000"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="3" />
+    </FrameLayout>
+    
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="16dp"
+        android:background="#DD000000"
+        android:padding="12dp"
+        android:orientation="vertical"
+        android:elevation="8dp">
+        
+        <TextView
+            android:id="@+id/coordsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X: 100  Y: 500\nW: 900  H: 150"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:fontFamily="monospace"
+            android:gravity="center" />
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+        
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Cancel"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#666666"
+            android:elevation="4dp" />
+        
+        <Button
+            android:id="@+id/confirmButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="✓ Confirm"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#4CAF50"
+            android:elevation="4dp" />
+    </LinearLayout>
+
+</FrameLayout>
