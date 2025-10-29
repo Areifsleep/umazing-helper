@@ -18,6 +18,8 @@ class AppMethodCallHandler(private val mainActivity: MainActivity) : MethodChann
                 "startOverlayService" -> handleStartOverlayService(result)
                 "stopOverlayService" -> handleStopOverlayService(result)
                 "showEventResult" -> handleShowEventResult(call, result)
+                "updateScanButtonAppearance" -> handleUpdateScanButtonAppearance(call, result)
+                "launchUmaMusume" -> handleLaunchUmaMusume(result)
                 else -> {
                     AppLogger.w("MethodCallHandler", "Unknown method: ${call.method}")
                     result.notImplemented()
@@ -74,6 +76,47 @@ class AppMethodCallHandler(private val mainActivity: MainActivity) : MethodChann
         } catch (e: Exception) {
             AppLogger.e("MethodCallHandler", "Error showing event result", e)
             result.error("SHOW_RESULT_ERROR", e.message, null)
+        }
+    }
+    
+    private fun handleUpdateScanButtonAppearance(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            val size = call.argument<Double>("size")?.toFloat() ?: 60.0f
+            val opacity = call.argument<Double>("opacity")?.toFloat() ?: 0.9f
+            
+            AppLogger.d("MethodCallHandler", "🎨 Updating scan button: size=${size}dp, opacity=$opacity")
+            
+            // Update the overlay service's scan button appearance
+            mainActivity.updateScanButtonAppearance(size, opacity)
+            
+            result.success(true)
+            AppLogger.d("MethodCallHandler", "✅ Scan button appearance updated")
+        } catch (e: Exception) {
+            AppLogger.e("MethodCallHandler", "Error updating scan button appearance", e)
+            result.error("UPDATE_BUTTON_ERROR", e.message, null)
+        }
+    }
+    
+    private fun handleLaunchUmaMusume(result: MethodChannel.Result) {
+        try {
+            val packageName = "com.cygames.umamusume"
+            
+            AppLogger.d("MethodCallHandler", "🔍 Looking for Uma Musume app: $packageName")
+            
+            val launchIntent = mainActivity.packageManager.getLaunchIntentForPackage(packageName)
+            
+            if (launchIntent != null) {
+                AppLogger.d("MethodCallHandler", "✅ Found Uma Musume!")
+                launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                mainActivity.startActivity(launchIntent)
+                result.success(true)
+            } else {
+                AppLogger.w("MethodCallHandler", "❌ Uma Musume app not found (package: $packageName)")
+                result.success(false)
+            }
+        } catch (e: Exception) {
+            AppLogger.e("MethodCallHandler", "Error launching Uma Musume", e)
+            result.error("LAUNCH_APP_ERROR", e.message, null)
         }
     }
 }

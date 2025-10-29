@@ -12,6 +12,11 @@
     <!-- Screen capture permission - for OCR recognition -->
     <uses-permission android:name="android.permission.MEDIA_PROJECTION" />
 
+    <!-- Package visibility for launching Uma Musume app (Android 11+) -->
+    <queries>
+        <package android:name="com.cygames.umamusume" />
+    </queries>
+
     <application
         android:label="umazing_helper"
         android:name="${applicationName}"

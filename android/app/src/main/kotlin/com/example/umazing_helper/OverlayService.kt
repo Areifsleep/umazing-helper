@@ -57,15 +57,24 @@ class OverlayService : Service() {
                         AppLogger.w("OverlayService", "🚨 Received token revocation broadcast")
                         handleTokenRevocation()
                     }
+                    "com.example.umazing_helper.UPDATE_SCAN_BUTTON" -> {
+                        AppLogger.d("OverlayService", "🎨 Received scan button update broadcast")
+                        val size = intent.getFloatExtra("size", 60.0f)
+                        val opacity = intent.getFloatExtra("opacity", 0.9f)
+                        overlayManager.updateScanButtonAppearance(size, opacity)
+                    }
                 }
             }
         }
         
-        val filter = IntentFilter("com.example.umazing_helper.TOKEN_REVOKED")
+        val filter = IntentFilter()
+        filter.addAction("com.example.umazing_helper.TOKEN_REVOKED")
+        filter.addAction("com.example.umazing_helper.UPDATE_SCAN_BUTTON")
+        
         ContextCompat.registerReceiver(this, tokenRevocationReceiver, filter,
             ContextCompat.RECEIVER_NOT_EXPORTED)
 
-        AppLogger.d("OverlayService", "📡 Token revocation receiver registered")
+        AppLogger.d("OverlayService", "📡 Broadcast receivers registered")
     }
     
     private fun initializeServices() {

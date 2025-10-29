@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/screen_capture_manager.dart';
 import '../services/recognition_data_service.dart';
+import '../services/scan_button_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'settings_screen.dart';
 
 class ScreenCaptureScreen extends StatefulWidget {
   @override
@@ -175,7 +178,6 @@ class ScreenCaptureScreen extends StatefulWidget {
 }
 
 class _ScreenCaptureScreenState extends State<ScreenCaptureScreen> {
-  String _status = 'Not initialized';
   bool _isOverlayRunning = false;
 
   // Character selection
@@ -264,65 +266,147 @@ class _ScreenCaptureScreenState extends State<ScreenCaptureScreen> {
   }
 
   Future<void> _initializeService() async {
-    setState(() => _status = 'Initializing...');
-
-    final success = await ScreenCaptureManager.initialize();
-    if (success) {
-      _checkPermissions();
-    } else {
-      setState(() => _status = 'Failed to initialize');
-    }
-  }
-
-  Future<void> _checkPermissions() async {
-    final permissions = await ScreenCaptureManager.checkPermissions();
-    setState(() {
-      switch (permissions) {
-        case PermissionStatus.granted:
-          _status = 'Ready - All permissions granted';
-          break;
-        case PermissionStatus.screenCaptureNeeded:
-          _status = 'Screen capture permission needed';
-          break;
-        case PermissionStatus.overlayNeeded:
-          _status = 'Overlay permission needed';
-          break;
-        case PermissionStatus.denied:
-          _status = 'Permissions denied';
-          break;
-      }
-    });
-  }
-
-  Future<void> _requestScreenCapturePermission() async {
-    setState(() => _status = 'Requesting screen capture permission...');
-
-    final granted = await ScreenCaptureManager.requestScreenCapturePermission();
-    if (granted) {
-      _checkPermissions();
-    } else {
-      setState(() => _status = 'Screen capture permission denied');
-    }
+    await ScreenCaptureManager.initialize();
   }
 
   Future<void> _toggleOverlay() async {
     if (_isOverlayRunning) {
+      // Stop the overlay
       final success = await ScreenCaptureManager.stopOverlay();
       if (success) {
         setState(() {
           _isOverlayRunning = false;
-          _status = 'Overlay stopped';
         });
       }
     } else {
+      // Check permissions first
+      final permissions = await ScreenCaptureManager.checkPermissions();
+
+      // Request screen capture permission if needed
+      if (permissions == PermissionStatus.screenCaptureNeeded ||
+          permissions == PermissionStatus.denied) {
+        final granted =
+            await ScreenCaptureManager.requestScreenCapturePermission();
+        if (!granted) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('❌ Screen capture permission is required'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      // Check overlay permission
+      if (permissions == PermissionStatus.overlayNeeded) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ Please grant overlay permission in Settings'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+              action: SnackBarAction(
+                label: 'Open Settings',
+                textColor: Colors.white,
+                onPressed: () {
+                  // The startOverlay call will open settings if permission not granted
+                  ScreenCaptureManager.startOverlay();
+                },
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // All permissions granted, start overlay
+      // Load button settings BEFORE starting overlay
+      final prefs = await ScanButtonPreferences.getAllPreferences();
+      final size = prefs['size']!;
+      final opacity = prefs['opacity']!;
+
+      print(
+        '📤 Sending button settings to Android: size=$size, opacity=$opacity',
+      );
+
       final success = await ScreenCaptureManager.startOverlay();
       if (success) {
         setState(() {
           _isOverlayRunning = true;
-          _status = 'Overlay started';
         });
+
+        // Wait a bit for overlay to be fully initialized
+        await Future.delayed(Duration(milliseconds: 100));
+
+        // Send button appearance settings to Android overlay immediately after starting
+        try {
+          const platform = MethodChannel('uma_screen_capture');
+          await platform.invokeMethod('updateScanButtonAppearance', {
+            'size': size,
+            'opacity': opacity,
+          });
+          print(
+            '✅ Button settings sent to overlay: ${size}dp, ${(opacity * 100).toInt()}%',
+          );
+        } catch (e) {
+          print('⚠️ Failed to send button settings: $e');
+        }
+      }
+    }
+  }
+
+  /// Launch Uma Musume app if installed
+  Future<void> _launchUmaMusume() async {
+    const platform = MethodChannel('uma_screen_capture');
+    try {
+      final result = await platform.invokeMethod('launchUmaMusume');
+      if (result == true) {
+        print('✅ Uma Musume app launched');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🎮 Launching Uma Musume...'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       } else {
-        setState(() => _status = 'Failed to start overlay');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('❌ Uma Musume app not found'),
+                  SizedBox(height: 4),
+                  Text(
+                    'Check logcat for detected packages',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Error launching Uma Musume: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Failed to launch app: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     }
   }
@@ -330,15 +414,35 @@ class _ScreenCaptureScreenState extends State<ScreenCaptureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Umazing Helper')),
-      body: Padding(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Icon(Icons.stars, size: 24),
+            SizedBox(width: 8),
+            Text('Umazing Helper'),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Character Selection Card
             Card(
-              color: Colors.blue.shade50,
+              elevation: 2,
               child: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Column(
@@ -563,33 +667,136 @@ class _ScreenCaptureScreenState extends State<ScreenCaptureScreen> {
 
             SizedBox(height: 16),
 
-            // Status
+            // Quick Actions Section
+            Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            SizedBox(height: 12),
+
+            // Launch Uma Musume Button
             Card(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('Status: $_status', style: TextStyle(fontSize: 16)),
+              elevation: 2,
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.pink.shade100,
+                  child: Icon(
+                    Icons.sports_esports,
+                    color: Colors.pink.shade700,
+                  ),
+                ),
+                title: Text('Launch Uma Musume'),
+                subtitle: Text('Open the game if installed'),
+                trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: _launchUmaMusume,
               ),
             ),
 
             SizedBox(height: 16),
 
-            // Buttons
-            ElevatedButton(
-              onPressed: _checkPermissions,
-              child: Text('Check Permissions'),
-            ),
-
-            ElevatedButton(
-              onPressed: _requestScreenCapturePermission,
-              child: Text('Request Screen Capture Permission'),
-            ),
-
-            ElevatedButton(
+            // Main Action Button (Start/Stop Overlay)
+            ElevatedButton.icon(
               onPressed: _toggleOverlay,
-              child: Text(_isOverlayRunning ? 'Stop Overlay' : 'Start Overlay'),
+              icon: Icon(_isOverlayRunning ? Icons.stop : Icons.play_arrow),
+              label: Text(
+                _isOverlayRunning ? 'Stop Overlay' : 'Start Overlay',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: _isOverlayRunning ? Colors.red : Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 24),
+
+            // How to Use Card
+            Card(
+              color: Colors.amber.shade50,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.help_outline,
+                          color: Colors.amber.shade700,
+                          size: 24,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'How to Use',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    _buildHowToStep(
+                      '1',
+                      'Select Uma (optional for better accuracy)',
+                    ),
+                    _buildHowToStep('2', 'Grant permissions and start overlay'),
+                    _buildHowToStep('3', 'Open your game or app'),
+                    _buildHowToStep('4', 'Tap the green button to scan'),
+                    _buildHowToStep(
+                      '5',
+                      'Long-press (500ms) to customize region',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHowToStep(String number, String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.amber.shade700,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14, color: Colors.amber.shade900),
+            ),
+          ),
+        ],
       ),
     );
   }

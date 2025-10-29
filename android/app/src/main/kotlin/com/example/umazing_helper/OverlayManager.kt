@@ -52,6 +52,12 @@ class OverlayManager(
         overlayView = inflater.inflate(R.layout.overlay_layout, null)
         
         setupOverlayView()
+        
+        // Load and apply saved button preferences BEFORE adding to window
+        // This prevents the default-sized button from appearing briefly
+        loadAndApplyScanButtonPreferences()
+        
+        // Add to window AFTER settings are applied
         addOverlayToWindow()
         
         AppLogger.d("OverlayManager", "✅ Draggable overlay created successfully")
@@ -59,6 +65,9 @@ class OverlayManager(
     
     private fun setupOverlayView() {
         overlayView?.let { view ->
+            // Make entire overlay invisible initially to prevent flash
+            view.visibility = View.INVISIBLE
+            
             // Find the scan button in your layout (now ImageButton)
             val scanButton = view.findViewById<ImageButton>(R.id.scanButton)
             
@@ -71,6 +80,98 @@ class OverlayManager(
                 AppLogger.e("OverlayManager", "❌ Scan button not found in overlay layout")
             }
         }
+    }
+    
+    /// Update scan button size and opacity from Flutter settings
+    fun updateScanButtonAppearance(sizeDp: Float, opacity: Float) {
+        overlayView?.let { view ->
+            val scanButton = view.findViewById<ImageButton>(R.id.scanButton)
+            
+            scanButton?.let { button ->
+                // Convert dp to pixels
+                val density = context.resources.displayMetrics.density
+                val sizePixels = (sizeDp * density).toInt()
+                
+                // Update button size
+                val layoutParams = button.layoutParams
+                layoutParams.width = sizePixels
+                layoutParams.height = sizePixels
+                button.layoutParams = layoutParams
+                
+                // Update button opacity (alpha)
+                button.alpha = opacity.coerceIn(0.1f, 1.0f)
+                
+                // Make entire overlay visible now that settings are applied (prevents flash)
+                view.visibility = View.VISIBLE
+                
+                AppLogger.d("OverlayManager", "🎨 Scan button updated: ${sizeDp}dp (${sizePixels}px), opacity: $opacity")
+            } ?: run {
+                AppLogger.e("OverlayManager", "❌ Scan button not found for appearance update")
+            }
+        } ?: run {
+            AppLogger.e("OverlayManager", "❌ Overlay view not found for appearance update")
+        }
+    }
+    
+    /// Load scan button preferences from SharedPreferences and apply them
+    fun loadAndApplyScanButtonPreferences() {
+        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        
+        // Flutter's shared_preferences plugin stores values with "flutter." prefix
+        // Try multiple key formats to ensure compatibility
+        val sizeKey1 = "flutter.scan_button_size"
+        val sizeKey2 = "scan_button_size"
+        val opacityKey1 = "flutter.scan_button_opacity"
+        val opacityKey2 = "scan_button_opacity"
+        
+        // Try to load size (check all possible storage formats)
+        val size = when {
+            prefs.contains(sizeKey1) -> {
+                // Try as Float first
+                try {
+                    prefs.getFloat(sizeKey1, 60.0f)
+                } catch (e: ClassCastException) {
+                    // If that fails, try as String
+                    prefs.getString(sizeKey1, "60.0")?.toFloatOrNull() ?: 60.0f
+                }
+            }
+            prefs.contains(sizeKey2) -> {
+                try {
+                    prefs.getFloat(sizeKey2, 60.0f)
+                } catch (e: ClassCastException) {
+                    prefs.getString(sizeKey2, "60.0")?.toFloatOrNull() ?: 60.0f
+                }
+            }
+            else -> 60.0f
+        }
+        
+        // Try to load opacity
+        val opacity = when {
+            prefs.contains(opacityKey1) -> {
+                try {
+                    prefs.getFloat(opacityKey1, 0.9f)
+                } catch (e: ClassCastException) {
+                    prefs.getString(opacityKey1, "0.9")?.toFloatOrNull() ?: 0.9f
+                }
+            }
+            prefs.contains(opacityKey2) -> {
+                try {
+                    prefs.getFloat(opacityKey2, 0.9f)
+                } catch (e: ClassCastException) {
+                    prefs.getString(opacityKey2, "0.9")?.toFloatOrNull() ?: 0.9f
+                }
+            }
+            else -> 0.9f
+        }
+        
+        AppLogger.d("OverlayManager", "📥 Loading scan button preferences: size=${size}dp, opacity=$opacity")
+        
+        // Debug: Log all keys in SharedPreferences to help diagnose
+        val allKeys = prefs.all.keys
+        AppLogger.d("OverlayManager", "🔑 Available SharedPreferences keys: ${allKeys.filter { it.contains("scan_button") }}")
+        
+        // Apply them
+        updateScanButtonAppearance(size, opacity)
     }
     
     private fun createDragTouchListener(): View.OnTouchListener {

@@ -255,6 +255,20 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
         }
     }
 
+    fun updateScanButtonAppearance(size: Float, opacity: Float) {
+        try {
+            // Send broadcast to overlay service to update button appearance
+            val intent = Intent("com.example.umazing_helper.UPDATE_SCAN_BUTTON")
+            intent.putExtra("size", size)
+            intent.putExtra("opacity", opacity)
+            sendBroadcast(intent)
+            
+            AppLogger.d(TAG, "📡 Broadcast sent to update scan button: size=${size}dp, opacity=$opacity")
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Failed to send scan button update broadcast", e)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         instance = null // Clear static reference
